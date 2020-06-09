@@ -1,7 +1,11 @@
+import sys
+sys.path.append('codeinterview-sandbox')
+
 import asyncio
 import discord
 
 import config
+from sandbox import Sandbox
 
 client = discord.Client()
 
@@ -14,12 +18,19 @@ def parse_code_message(message):
     print("Hello, world")
     ```
     '''
+    def override_language(language):
+        if 'python' in language: return 'python3.6'
+        return language
+    
     split_message = message.content.split('\n')
 
     language = split_message[0][3:].strip()
     code = '\n'.join(split_message[1:-1])
 
-    return language, code
+    return override_language(language), code
+
+def exec_code(language, code):
+    return Sandbox().run(language, code)
 
 def should_ignore_message(message):
     channel = message.channel
@@ -41,10 +52,10 @@ async def on_message(message):
 
     channel = message.channel
     
-    print(message.content, 'in', message.channel)
     language, code = parse_code_message(message)
-
-    await send_message(channel, 'language: {0}\ncode: {1}'.format(language, code))
+    
+    output = exec_code(language, code)
+    await send_message(channel, 'Output:\n{0}'.format(output))
 
 if __name__ == '__main__':
     print(discord.__version__)
