@@ -5,7 +5,10 @@ import asyncio
 import discord
 
 import config
-from sandbox import Sandbox
+from sandbox import Sandbox, MemoryLimitExceeded, TimeoutError 
+
+TIME_LIMIT = 60
+MEM_LIMIT = '1024m'
 
 client = discord.Client()
 
@@ -30,7 +33,14 @@ def parse_code_message(message):
     return override_language(language), code
 
 def exec_code(language, code):
-    return Sandbox().run(language, code)
+    try:
+        return Sandbox(time_limit=TIME_LIMIT, memory_limit=MEM_LIMIT).run(language, code)
+    except MemoryLimitExceeded:
+        return "We ran out of memory. The limit is {0}".format(MEM_LIMIT)
+    except TimeoutError:
+        return "Timeout: code took too long to run. The time limit is {0} seconds".format(TIME_LIMIT)
+    except AssertionError:
+        return "Unsupported language..."
 
 def should_ignore_message(message):
     channel = message.channel
