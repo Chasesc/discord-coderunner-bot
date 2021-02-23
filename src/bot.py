@@ -45,11 +45,10 @@ def exec_code(language, code):
 
 
 def is_code_message(message):
-    return message.startswith('```') and message.endswith('```')
+    return message.content.startswith('```') and message.content.endswith('```')
 
 def should_ignore_message(message):
     channel = message.channel
-    content = message.content
 
     return any([message.author == client.user,
                 channel.id not in config.get('allowed_channels')])
