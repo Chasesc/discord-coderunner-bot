@@ -5,6 +5,7 @@ import asyncio
 import discord
 
 import config
+import pastebin
 from sandbox import Sandbox, MemoryLimitExceeded, TimeoutError 
 
 TIME_LIMIT = 60
@@ -42,14 +43,16 @@ def exec_code(language, code):
     except AssertionError:
         return "Unsupported language..."
 
+
+def is_code_message(message):
+    return message.startswith('```') and message.endswith('```')
+
 def should_ignore_message(message):
     channel = message.channel
     content = message.content
 
-    is_code_message = content.startswith('```') and content.endswith('```') 
     return any([message.author == client.user,
-                channel.id not in config.get('allowed_channels'),
-                not is_code_message])
+                channel.id not in config.get('allowed_channels')])
 
 async def send_message(channel, msg):
     # TODO: chunk the message into 2000 characters each
@@ -62,10 +65,17 @@ async def on_message(message):
 
     channel = message.channel
     
-    language, code = parse_code_message(message)
+    if is_code_message(message):
+        language, code = parse_code_message(message)
+        output = exec_code(language, code)
+        await send_message(channel, 'Output:\n{0}'.format(output))
+    elif message == '!random':
+        paste = random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
+        code = download_paste(paste)
+
+        await send_message(channel, f'code:\n{code}')
+        await send_message(channel, f'paste: {paste.url}')
     
-    output = exec_code(language, code)
-    await send_message(channel, 'Output:\n{0}'.format(output))
 
 if __name__ == '__main__':
     print(discord.__version__)
