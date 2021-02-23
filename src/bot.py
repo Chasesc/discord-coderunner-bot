@@ -15,6 +15,11 @@ MEM_LIMIT = '1024m'
 client = discord.Client()
 queue = deque(maxlen=100)
 
+def override_language(language):
+        if 'python' in language: return 'python3.6'
+        if language == 'c++': return 'cpp'
+        return language
+
 def parse_code_message(message):
     '''
     extracts the language & code from a message.
@@ -24,9 +29,6 @@ def parse_code_message(message):
     print("Hello, world")
     ```
     '''
-    def override_language(language):
-        if 'python' in language: return 'python3.6'
-        return language
     
     split_message = message.content.split('\n')
 
@@ -77,7 +79,7 @@ async def on_message(message):
         # THIS IS REALLY, REALLY DUMB :)
         paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
         code = pastebin.download_paste(paste)
-        language = 'cpp' if paste.syntax == 'c++' else paste.syntax # this edge case is dumb
+        language = override_language(paste.syntax)
 
         await send_message(channel, f'```{language}\n{code[:1950]}```')
         await send_message(channel, f'Paste: {paste.url}')
