@@ -92,7 +92,7 @@ async def on_message(message):
 async def on_reaction_add(reaction, user):
     if reaction.emoji == '👍':
         for random_code_details in queue:
-            await send_message('Executing random code...')
+            await send_message(random_code_details['channel'], 'Executing random code...')
             await send_code_output(random_code_details['channel'],
                                    random_code_details['language'],
                                    random_code_details['random_code'])
