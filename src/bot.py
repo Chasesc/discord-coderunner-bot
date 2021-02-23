@@ -6,12 +6,14 @@ import discord
 
 import config
 import pastebin
+from collections import deque
 from sandbox import Sandbox, MemoryLimitExceeded, TimeoutError 
 
 TIME_LIMIT = 60
 MEM_LIMIT = '1024m'
 
 client = discord.Client()
+queue = deque(maxlen=100)
 
 def parse_code_message(message):
     '''
@@ -57,6 +59,10 @@ async def send_message(channel, msg):
     # TODO: chunk the message into 2000 characters each
     return await channel.send(msg[:2000])
 
+async def send_code_output(channel, language, code):
+    output = exec_code(language, code)
+    await send_message(channel, 'Output:\n{0}'.format(output))
+
 @client.event
 async def on_message(message):
     if should_ignore_message(message):
@@ -66,14 +72,30 @@ async def on_message(message):
     
     if is_code_message(message):
         language, code = parse_code_message(message)
-        output = exec_code(language, code)
-        await send_message(channel, 'Output:\n{0}'.format(output))
+        await send_code_output(channel, language, code)
     elif message.content == '!random':
-        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
-        code = pastebin.download_paste(paste)
+        # THIS IS REALLY, REALLY DUMB :)
+        random_paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
+        random_code = pastebin.download_paste(paste)
 
-        await send_message(channel, f'code:\n{code}')
-        await send_message(channel, f'paste: {paste.url}')
+        await send_message(channel, f'Code:\n{code}')
+        await send_message(channel, f'Paste: {random_paste.url}')
+        confirmation_message = send_message(channel, 'React with 👍 if we should run this code')
+        queue.append({
+            'channel': channel,
+            'confirmation_message_id': confirmation_message.id,
+            'random_code': random_code,
+            'language': 'cpp' if random_paste.syntax == 'c++' else random_paste.syntax # this edge case is dumb
+        })
+
+@client.event
+async def on_reaction_add(reaction, user):
+    if reaction.emoji == '👍':
+        for random_code_details in queue:
+            await send_message('Executing random code...')
+            await send_code_output(random_code_details['channel'],
+                                   random_code_details['language'],
+                                   random_code_details['random_code'])
     
 
 if __name__ == '__main__':
