@@ -75,17 +75,17 @@ async def on_message(message):
         await send_code_output(channel, language, code)
     elif message.content == '!random':
         # THIS IS REALLY, REALLY DUMB :)
-        random_paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
-        random_code = pastebin.download_paste(paste)
+        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
+        code = pastebin.download_paste(paste)
 
         await send_message(channel, f'Code:\n{code}')
-        await send_message(channel, f'Paste: {random_paste.url}')
-        confirmation_message = send_message(channel, 'React with 👍 if we should run this code')
+        await send_message(channel, f'Paste: {paste.url}')
+        confirmation_message = await send_message(channel, 'React with 👍 if we should run this code')
         queue.append({
             'channel': channel,
             'confirmation_message_id': confirmation_message.id,
-            'random_code': random_code,
-            'language': 'cpp' if random_paste.syntax == 'c++' else random_paste.syntax # this edge case is dumb
+            'random_code': code,
+            'language': 'cpp' if paste.syntax == 'c++' else paste.syntax # this edge case is dumb
         })
 
 @client.event
