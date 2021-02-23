@@ -16,9 +16,10 @@ client = discord.Client()
 queue = deque(maxlen=100)
 
 def override_language(language):
-        if 'python' in language: return 'python3.6'
-        if language == 'c++': return 'cpp'
-        return language
+    if 'python' in language: return 'python3.6'
+    if language == 'c++': return 'cpp'
+    if language == 'c': return 'cpp'
+    return language
 
 def parse_code_message(message):
     '''
@@ -77,11 +78,12 @@ async def on_message(message):
         await send_code_output(channel, language, code)
     elif message.content == '!random':
         # THIS IS REALLY, REALLY DUMB :)
-        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala', 'javascript', 'rust'})
+        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift',
+                                                               'scala', 'javascript', 'rust', 'c'})
         code = pastebin.download_paste(paste)
         language = override_language(paste.syntax)
 
-        await send_message(channel, f'```{language}\n{code[:1950]}```')
+        await send_message(channel, f'```{paste.syntax}\n{code[:1950]}```')
         await send_message(channel, f'Paste: {paste.url}')
         confirmation_message = await send_message(channel, 'React with 👍 if we should run this code')
         queue.append({
