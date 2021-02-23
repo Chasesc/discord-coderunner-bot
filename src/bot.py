@@ -79,7 +79,7 @@ async def on_message(message):
         code = pastebin.download_paste(paste)
         language = 'cpp' if paste.syntax == 'c++' else paste.syntax # this edge case is dumb
 
-        await send_message(channel, f'```{language}\n{code}```')
+        await send_message(channel, f'```{language}\n{code[:1950]}```')
         await send_message(channel, f'Paste: {paste.url}')
         confirmation_message = await send_message(channel, 'React with 👍 if we should run this code')
         queue.append({
