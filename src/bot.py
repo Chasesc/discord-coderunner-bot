@@ -69,8 +69,8 @@ async def on_message(message):
         output = exec_code(language, code)
         await send_message(channel, 'Output:\n{0}'.format(output))
     elif message.content == '!random':
-        paste = random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
-        code = download_paste(paste)
+        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
+        code = pastebin.download_paste(paste)
 
         await send_message(channel, f'code:\n{code}')
         await send_message(channel, f'paste: {paste.url}')
