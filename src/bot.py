@@ -77,7 +77,7 @@ async def on_message(message):
         await send_code_output(channel, language, code)
     elif message.content == '!random':
         # THIS IS REALLY, REALLY DUMB :)
-        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala'})
+        paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift', 'scala', 'javascript', 'rust'})
         code = pastebin.download_paste(paste)
         language = override_language(paste.syntax)
 
