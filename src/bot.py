@@ -38,9 +38,9 @@ def parse_code_message(message):
 
     return override_language(language), code
 
-def exec_code(language, code):
+def exec_code(language, code, network):
     try:
-        return Sandbox(time_limit=TIME_LIMIT, memory_limit=MEM_LIMIT).run(language, code)
+        return Sandbox(time_limit=TIME_LIMIT, memory_limit=MEM_LIMIT).run(language, code, network=network)
     except MemoryLimitExceeded:
         return "We ran out of memory. The limit is {0}".format(MEM_LIMIT)
     except TimeoutError:
@@ -62,8 +62,8 @@ async def send_message(channel, msg):
     # TODO: chunk the message into 2000 characters each
     return await channel.send(msg[:2000])
 
-async def send_code_output(channel, language, code):
-    output = exec_code(language, code)
+async def send_code_output(channel, language, code, network=False):
+    output = exec_code(language, code, network)
     await send_message(channel, 'Output:\n{0}'.format(output))
 
 @client.event
@@ -75,7 +75,7 @@ async def on_message(message):
     
     if is_code_message(message):
         language, code = parse_code_message(message)
-        await send_code_output(channel, language, code)
+        await send_code_output(channel, language, code, network=True)
     elif message.content == '!random':
         # THIS IS REALLY, REALLY DUMB :)
         paste = pastebin.random_archive(lambda a: a.syntax in {'c++', 'java', 'python', 'swift',
@@ -100,8 +100,9 @@ async def on_reaction_add(reaction, user):
             if reaction.message.id == random_code_details['confirmation_message_id']:
                 await send_message(random_code_details['channel'], 'Executing random code...')
                 await send_code_output(random_code_details['channel'],
-                                    random_code_details['language'],
-                                    random_code_details['random_code'])
+                                       random_code_details['language'],
+                                       random_code_details['random_code'],
+                                       network=False)
     
 
 if __name__ == '__main__':
